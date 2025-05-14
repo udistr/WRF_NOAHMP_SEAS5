@@ -1,0 +1,37 @@
+&share
+ wrf_core = 'ARW',
+ max_dom = 2,
+ start_date = '2016-11-01_12:00:00','2016-11-01_12:00:00','2021-03-11_00:00:00'
+ end_date =   '2017-06-01_00:00:00','2017-06-01_00:00:00','2021-03-14_00:00:00'
+ interval_seconds = 43200
+ io_form_geogrid = 2,
+/
+
+&geogrid
+ parent_id         =   0,   1,   2, 
+ parent_grid_ratio =   1,   3,   3,
+ i_parent_start    =   1,   65,  40,
+ j_parent_start    =   1,   70,  17,
+ e_we              = 150,  100,  94,
+ e_sn              = 200,  202, 172,
+ geog_data_res = '30s+default','30s+default',
+ dx = 0.09
+ dy = 0.09
+ map_proj = 'lat-lon',
+ ref_lat   =  31.5,
+ ref_lon   = 34.5,
+ truelat1  =  31.5,
+ stand_lon =  34.5,
+ !truelat2  =  60.0,
+ geog_data_path = '/home/ARO.local/udist/WPS_GEOG'
+/
+
+&ungrib
+ out_format = 'WPS',
+ prefix = 'FILE_SEAS5',
+/
+
+&metgrid
+ fg_name = 'FILE_SEAS5'
+ io_form_metgrid = 2, 
+/
