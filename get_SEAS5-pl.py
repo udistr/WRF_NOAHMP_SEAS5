@@ -27,5 +27,5 @@ request = {
     "data_format": "grib"
 }
 
-c.retrieve(dataset, request).download("SEAS5_VARN-YY1MM1DD100-pl.grib")
+c.retrieve(dataset, request).download("SEAS5_VN-YY1MM1DD100-pl.grib")
 

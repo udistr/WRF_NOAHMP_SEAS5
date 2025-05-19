@@ -8,7 +8,7 @@ sdate=20171101
 stime=00
 #edate=20220530
 #etime=00
-loop=1
+loop=0
 
 #sdate=$1
 #stime=$2
@@ -16,6 +16,7 @@ loop=1
 #etime=$4
 #loop=$5
 
+mkdir -p ${ARCH}
 
 d=`date -u -d "${sdate}T${stime} +7 hour"  +'%Y%m%dT%H'`
 #enddate=`date -u -d "${edate}T${etime} +7 hour"  +'%Y%m%dT%H'`
@@ -23,7 +24,7 @@ echo $d
 #echo $enddate
 
 echo "entering loop"
-while [ $loop -le 1 ]; do
+while [ $loop -le 0 ]; do
 
   start_time=$(date +%s.%N)
   d=`date -u -d "${d} +7 hour"  +'%Y%m%dT%H'`
@@ -39,9 +40,6 @@ while [ $loop -le 1 ]; do
 
   echo ${DD1}T${HH1}
   bash get_data.sh $DD1 #> download.log 2>&1
-
-exit
-
   EXCODE=$?
   if [ ${EXCODE} -eq 0 ]; then
     start_time_wrf=$(date +%s.%N)
@@ -63,6 +61,6 @@ exit
   execution_time=$(echo "$end_time - $start_time" | bc)
   printf "Execution time for iteration $i: %.6f seconds\n" $execution_time
   echo
-
+  loop=$((loop + 1))
 done
 
