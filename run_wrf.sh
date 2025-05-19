@@ -165,14 +165,15 @@ echo "Update crop fields in wrfinput"
 . /data/bin/miniconda2/envs/pythonUdi-v1.0/env_pythonUdi.sh
 
 if [ ! -f ${ARCH}/FR.nc ]; then
-  cp -r ${HOMEDIR}/agri .
+  cp -r ${WRFDATA}/agri .
+  cp -r ${WRFDATA}/border .
   cp -r ${HOMEDIR}/plot_wheat.py .
   cp -r ${WPSRUN}/geo_em.d02.nc .
   ipython ./plot_wheat.py
-  rm -r agri plot_wheat.py geo_em.d02.nc
+  rm -r agri plot_wheat.py geo_em.d02.nc border
   cp FR.nc ${ARCH}/
 else
-  cp ${ARCH}/FR.nc
+  cp ${ARCH}/FR.nc .
 fi
 
 ipython ./mk_crop.py
