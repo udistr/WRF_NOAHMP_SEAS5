@@ -47,10 +47,10 @@ if [ ! -f ./namelist.wps ]; then
     cp "${HOMEDIR}/namelist.wps" .
 fi
 
-echo "Run geogrid"
 if [ ! -f ./geo_em.d02.nc ]; then
   cp ${HOMEDIR}/run_sbatch_geogrid.sh .
   sed -i "s/WPSRUN/${WPSRUN}/g" run_sbatch_geogrid.sh
+  echo "Run geogrid"
   sbatch --wait run_sbatch_geogrid.sh
   #./geogrid.exe > geog.txt 2>&1
 fi
@@ -64,17 +64,23 @@ sed -i "s/fg_name.*/fg_name = 'FILE_ERA5'/g" namelist.wps
 ./link_grib.csh ${ICBC}/ERA5-*
 #ln -sf ungrib/Variable_Tables/Vtable.ERA-interim.pl Vtable
 
-echo "Run ungrib 1"
-rm -f FILE_ERA5:*
-./ungrib.exe > ung1.txt 2>&1
-RC=$?
-if [ ${RC} -ne 0 ]; then echo "Command failed with exit code ${RC}. Exiting.";  exit 1; fi
+if [ ! -f DoneUngrib1 ]; then
+  rm -f FILE_ERA5:*
+  echo "Run ungrib 1"
+  ./ungrib.exe > ung1.txt 2>&1
+  RC=$?
+  if [ ${RC} -ne 0 ]; then echo "Command failed with exit code ${RC}. Exiting.";  exit 1; fi
+  touch DoneUngrib1
+fi
 
-echo "Run metgrid 1"
-rm -f met_em.d0*
-./metgrid.exe > met1.txt 2>&1
-RC=$?
-if [ ${RC} -ne 0 ]; then echo "Command failed with exit code ${RC}. Exiting.";  exit 1; fi
+if [ ! -f DoneMetgrid1 ]; then
+  rm -f met_em.d0*
+  echo "Run metgrid 1"
+  ./metgrid.exe > met1.txt 2>&1
+  RC=$?
+  if [ ${RC} -ne 0 ]; then echo "Command failed with exit code ${RC}. Exiting.";  exit 1; fi
+  touch DoneMetgrid1
+fi
 
 # generate SEAS5 boundary conditions
 
@@ -85,16 +91,22 @@ sed -i "s/fg_name.*/fg_name = 'FILE_SEAS5'/g" namelist.wps
 ./link_grib.csh ${ICBC}/SEAS5*
 #ln -sf ungrib/Variable_Tables/Vtable.ERA-interim.pl Vtable
 
-echo "Run ungrib 2"
-rm -f FILE_SEAS5:*
-./ungrib.exe > ung2.txt 2>&1
-RC=$?
-if [ ${RC} -ne 0 ]; then echo "Command failed with exit code ${RC}. Exiting.";  exit 1; fi
+if [ ! -f DoneUngrib2 ]; then
+  rm -f FILE_SEAS5:*
+  echo "Run ungrib 2"
+  ./ungrib.exe > ung2.txt 2>&1
+  RC=$?
+  if [ ${RC} -ne 0 ]; then echo "Command failed with exit code ${RC}. Exiting.";  exit 1; fi
+  touch DoneUngrib2
+fi
 
-echo "Run metgrid 2"
-./metgrid.exe > met2.txt 2>&1
-RC=$?
-if [ ${RC} -ne 0 ]; then echo "Command failed with exit code ${RC}. Exiting.";  exit 1; fi
+if [ ! -f DoneMetgrid2 ]; then
+  echo "Run metgrid 2"
+  ./metgrid.exe > met2.txt 2>&1
+  RC=$?
+  if [ ${RC} -ne 0 ]; then echo "Command failed with exit code ${RC}. Exiting.";  exit 1; fi
+  touch DoneMetgrid2
+fi
 
 #-------------------------------------------------------------------------------------
 # WRF
@@ -103,18 +115,22 @@ if [ ${RC} -ne 0 ]; then echo "Command failed with exit code ${RC}. Exiting.";  
 echo "WRF"
 
 # create WRF folder
-WRFRUN=${WRFDIR}/run_${DATE1}
+WRFRUN=${WRFDIR}/run_${DATE1}_${WRFCONF}
 cp -r ${WRFDIR}/RUN_SEAS5_TEMPLATE ${WRFRUN}
 cp ${HOMEDIR}/mk_crop.py ${WRFRUN}
 
 echo "entering WRFDIR: ${WRFRUN}"
 cd ${WRFRUN}
-if [ ! -f ./namelist.input ]; then
-    cp "${HOMEDIR}/namelist.input" .
-fi
+cp "${HOMEDIR}/namelist.input_${WRFCONF}" ./namelist.input
+
 rm -f met_em.d0*
 echo "linlking from ${WPSRUN}/met_em.d0"
-ln -sf ${WPSRUN}/met_em.d0* ./
+
+if [ -d ${ARCH}/${WPSRUN} ]; then
+  ln -sf ${ARCH}/${WPSRUN}/met_em.d0* ./
+else
+  ln -sf ${WPSRUN}/met_em.d0* ./
+fi 
 
 if [ $LOOP -eq 0 ];
 then
@@ -138,9 +154,12 @@ sed -i "s/end_day.*/end_day = ${DD2},   ${DD2},   ${DD2},/g" namelist.input
 sed -i "s/end_hour.*/end_hour = ${HH2},   ${HH2},   ${HH2},/g" namelist.input
 
 echo "running real.exe for boundary conditions"
-./real.exe > real1.txt 2>&1
-RC=$?
-if [ ${RC} -ne 0 ]; then echo "Command failed with exit code ${RC}. Exiting.";  exit 1; fi
+if [ ! -f DoneReal1 ]; then
+  ./real.exe > real1.txt 2>&1
+  RC=$?
+  if [ ${RC} -ne 0 ]; then echo "Command failed with exit code ${RC}. Exiting.";  exit 1; fi
+  touch DoneReal1
+fi
 
 # second time real (NoahMP LSM)
 
@@ -157,9 +176,12 @@ sed -i "s/end_day.*/end_day = ${DD1},   ${DD1},   ${DD1},/g" namelist.input
 sed -i "s/end_hour.*/end_hour = ${HH1},   ${HH1},   ${HH1},/g" namelist.input
 
 echo "running real.exe for initial conditions"
-./real.exe > real2.txt 2>&1
-RC=$?
-if [ ${RC} -ne 0 ]; then echo "Command failed with exit code ${RC}. Exiting.";  exit 1; fi
+if [ ! -f DoneReal2 ]; then
+  ./real.exe > real2.txt 2>&1
+  RC=$?
+  if [ ${RC} -ne 0 ]; then echo "Command failed with exit code ${RC}. Exiting.";  exit 1; fi
+  touch DoneReal2
+fi
 
 echo "Update crop fields in wrfinput"
 . /data/bin/miniconda2/envs/pythonUdi-v1.0/env_pythonUdi.sh
@@ -199,11 +221,11 @@ if [ ${RC} -ne 0 ]; then echo "Command failed with exit code ${RC}. Exiting.";  
 #-------------------------------------------------------------------------------------
 
 echo "Moving files to archive: ${ARCH}"
-echo "Moving icbc folder: ${WRFDATA}/${DATE1}00"
-mv ${WRFDATA}/${DATE1}00 ${ARCH}/
-echo "Moving wps folder: ${WRFDATA}/${DATE1}00"
+echo "Moving icbc folder: ${ICBC}"
+mv ${ICBC} ${ARCH}/
+echo "Moving wps folder: ${WPSRUN}"
 mv ${WPSRUN} ${ARCH}/
-echo "Moving wrf folder: ${WRFDATA}/${DATE1}00"
+echo "Moving wrf folder: ${WRFRUN}"
 mv ${WRFRUN} ${ARCH}/
 
 
