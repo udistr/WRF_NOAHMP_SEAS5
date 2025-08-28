@@ -4,7 +4,10 @@
 
 . params.sh
 
-sdate=20171101
+YEAR=$1
+WRFCONF=$2
+
+sdate=${1}1101
 stime=00
 #edate=20220530
 #etime=00
@@ -43,7 +46,7 @@ while [ $loop -le 0 ]; do
   EXCODE=$?
   if [ ${EXCODE} -eq 0 ]; then
     start_time_wrf=$(date +%s.%N)
-    bash run_wrf.sh $DD1 $HH1 $loop
+    bash run_wrf.sh $DD1 $HH1 $loop ${WRFCONF}
     EXCODE=$?
     end_time_wrf=$(date +%s.%N)
     execution_time_wrf=$(echo "$end_time_wrf - $start_time_wrf" | bc)

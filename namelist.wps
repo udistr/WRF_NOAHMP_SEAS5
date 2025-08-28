@@ -1,8 +1,8 @@
 &share
  wrf_core = 'ARW',
  max_dom = 2,
- start_date = '2016-11-01_12:00:00','2016-11-01_12:00:00','2021-03-11_00:00:00'
- end_date =   '2017-06-01_00:00:00','2017-06-01_00:00:00','2021-03-14_00:00:00'
+ start_date = '2018-11-01_00:00:00','2018-11-01_00:00:00','2018-11-01_00:00:00'
+ end_date =   '2018-11-01_00:00:00','2018-11-01_00:00:00','2018-11-01_00:00:00'
  interval_seconds = 43200
  io_form_geogrid = 2,
 /
@@ -28,10 +28,10 @@
 
 &ungrib
  out_format = 'WPS',
- prefix = 'FILE_SEAS5',
+ prefix = 'FILE_ERA5'
 /
 
 &metgrid
- fg_name = 'FILE_SEAS5'
+ fg_name = 'FILE_ERA5'
  io_form_metgrid = 2, 
 /

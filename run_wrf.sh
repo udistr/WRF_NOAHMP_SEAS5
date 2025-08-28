@@ -6,13 +6,17 @@
 
 export LD_LIBRARY_PATH=/home/ARO.local/udist/Build_WRF/LIBRARIES/grib2/lib
 
-DATE1=20220520
-HH1=00
-HH2=00
+#DATE1=20161101
+#HH1=00
 
 DATE1=$1
 HH1=$2
 LOOP=$3
+WRFCONF=$4
+
+HH2=00
+#history interval
+HI=180
 
 ICBC=${WRFDATA}/${DATE1}00
 
@@ -49,7 +53,7 @@ fi
 
 if [ ! -f ./geo_em.d02.nc ]; then
   cp ${HOMEDIR}/run_sbatch_geogrid.sh .
-  sed -i "s/WPSRUN/${WPSRUN}/g" run_sbatch_geogrid.sh
+  sed -i "s|WPSRUN|${WPSRUN}|g" run_sbatch_geogrid.sh
   echo "Run geogrid"
   sbatch --wait run_sbatch_geogrid.sh
   #./geogrid.exe > geog.txt 2>&1
@@ -117,11 +121,11 @@ echo "WRF"
 # create WRF folder
 WRFRUN=${WRFDIR}/run_${DATE1}_${WRFCONF}
 cp -r ${WRFDIR}/RUN_SEAS5_TEMPLATE ${WRFRUN}
-cp ${HOMEDIR}/mk_crop.py ${WRFRUN}
 
 echo "entering WRFDIR: ${WRFRUN}"
 cd ${WRFRUN}
 cp "${HOMEDIR}/namelist.input_${WRFCONF}" ./namelist.input
+cp ${HOMEDIR}/mk_crop.py .
 
 rm -f met_em.d0*
 echo "linlking from ${WPSRUN}/met_em.d0"
@@ -155,7 +159,10 @@ sed -i "s/end_hour.*/end_hour = ${HH2},   ${HH2},   ${HH2},/g" namelist.input
 
 echo "running real.exe for boundary conditions"
 if [ ! -f DoneReal1 ]; then
-  ./real.exe > real1.txt 2>&1
+  cp "${HOMEDIR}/run_sbatch_real.sh" .
+  sed -i "s|WRFRUN|${WRFRUN}|g;" run_sbatch_real.sh
+  sed -i "s|WRF_SEAS5|SEAS5_${DATE1}_${WRFCONF}|g;" run_sbatch_real.sh
+  sbatch --wait run_sbatch_real.sh
   RC=$?
   if [ ${RC} -ne 0 ]; then echo "Command failed with exit code ${RC}. Exiting.";  exit 1; fi
   touch DoneReal1
@@ -177,11 +184,17 @@ sed -i "s/end_hour.*/end_hour = ${HH1},   ${HH1},   ${HH1},/g" namelist.input
 
 echo "running real.exe for initial conditions"
 if [ ! -f DoneReal2 ]; then
-  ./real.exe > real2.txt 2>&1
+  cp "${HOMEDIR}/run_sbatch_real.sh" .
+  sed -i "s|WRFRUN|${WRFRUN}|g;" run_sbatch_real.sh
+  sed -i "s|WRF_SEAS5|SEAS5_${DATE1}_${WRFCONF}|g;" run_sbatch_real.sh
+  sbatch --wait run_sbatch_real.sh
   RC=$?
   if [ ${RC} -ne 0 ]; then echo "Command failed with exit code ${RC}. Exiting.";  exit 1; fi
   touch DoneReal2
 fi
+
+/arch/Users/udist/miniconda/envs/nco/bin/ncks -O -x -v VEGFRA wrflowinp_d01 wrflowinp_d01
+/arch/Users/udist/miniconda/envs/nco/bin/ncks -O -x -v VEGFRA wrflowinp_d02 wrflowinp_d02
 
 echo "Update crop fields in wrfinput"
 . /data/bin/miniconda2/envs/pythonUdi-v1.0/env_pythonUdi.sh
@@ -205,13 +218,14 @@ sed -i "s/end_month.*/end_month = ${MM2},   ${MM2},   ${MM1},/g" namelist.input
 sed -i "s/end_day.*/end_day = ${DD2},   ${DD2},   ${DD2},/g" namelist.input
 sed -i "s/end_hour.*/end_hour = ${HH2},   ${HH2},   ${HH2},/g" namelist.input
 
+sed -i "s/history_interval.*/history_interval = ${HI},   ${HI},   ${HI},/g" namelist.input
+
 # update initial conditions of the inner domain
 
 echo "Submiting job to queue: wrf"
-if [ ! -f ./run_sbatch.sh ]; then
-  cp "${HOMEDIR}/run_sbatch.sh" .
-  sed -i "s/WRFRUN/${WRFRUN}/g;" run_sbatch.sh
-fi
+cp "${HOMEDIR}/run_sbatch.sh" .
+sed -i "s|WRFRUN|${WRFRUN}|g;" run_sbatch.sh
+sed -i "s|WRF_SEAS5|SEAS5_${DATE1}_${WRFCONF}|g;" run_sbatch.sh
 sbatch --wait run_sbatch.sh
 RC=$?
 if [ ${RC} -ne 0 ]; then echo "Command failed with exit code ${RC}. Exiting.";  exit 1; fi
@@ -221,11 +235,14 @@ if [ ${RC} -ne 0 ]; then echo "Command failed with exit code ${RC}. Exiting.";  
 #-------------------------------------------------------------------------------------
 
 echo "Moving files to archive: ${ARCH}"
-echo "Moving icbc folder: ${ICBC}"
-mv ${ICBC} ${ARCH}/
-echo "Moving wps folder: ${WPSRUN}"
-mv ${WPSRUN} ${ARCH}/
+#echo "Moving icbc folder: ${ICBC}"
+#rm -r ${ARCH}/${DATE1}00
+#mv ${ICBC} ${ARCH}/
+#echo "Moving wps folder: ${WPSRUN}"
+#rm -r ${ARCH}/WPS_SEAS5_${DATE1}
+#mv ${WPSRUN} ${ARCH}/
 echo "Moving wrf folder: ${WRFRUN}"
+rm -r ${ARCH}/run_${DATE1}_${WRFCONF}
 mv ${WRFRUN} ${ARCH}/
 
 

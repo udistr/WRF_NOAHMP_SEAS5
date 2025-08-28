@@ -12,6 +12,3 @@ export Nort=55
 export West=-15
 export Sout=20
 export East=55
-
-
-export WRFCONF=a
