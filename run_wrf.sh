@@ -193,8 +193,8 @@ if [ ! -f DoneReal2 ]; then
   touch DoneReal2
 fi
 
-/arch/Users/udist/miniconda/envs/nco/bin/ncks -O -x -v VEGFRA wrflowinp_d01 wrflowinp_d01
-/arch/Users/udist/miniconda/envs/nco/bin/ncks -O -x -v VEGFRA wrflowinp_d02 wrflowinp_d02
+#/arch/Users/udist/miniconda/envs/nco/bin/ncks -O -x -v LAI,VEGFRA,ALBBCK wrflowinp_d01 wrflowinp_d01
+#/arch/Users/udist/miniconda/envs/nco/bin/ncks -O -x -v LAI,VEGFRA,ALBBCK wrflowinp_d02 wrflowinp_d02
 
 echo "Update crop fields in wrfinput"
 . /data/bin/miniconda2/envs/pythonUdi-v1.0/env_pythonUdi.sh

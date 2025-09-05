@@ -19,10 +19,10 @@ LU_INDEX = wrfinput.variables['LU_INDEX'][0,:,:]
 IVGTYP = wrfinput.variables['IVGTYP'][0,:,:]
 PLANTING = wrfinput.variables['PLANTING'][0,:,:]
 HARVEST = wrfinput.variables['HARVEST'][0,:,:]
-
+HGT = wrfinput.variables['HGT'][0,:,:]
 
 # Modifying those variables
-CROPTYPE[:, :] = np.where((FR > 0.1) | (LU_INDEX == 12), True, False)
+CROPTYPE[:, :] = np.where(((FR > 0.1) | (LU_INDEX == 12) & (HGT<1000)), True, False)
 LU_INDEX[:,:]=np.where(FR > 0.1, 12, LU_INDEX)
 IVGTYP[:,:]=np.where(FR > 0.1, 12, IVGTYP)
 PLANTING[:,:]=335 
