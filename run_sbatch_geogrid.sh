@@ -9,7 +9,7 @@
 #SBATCH --ntasks-per-node=1     # Number of tasks per node
 #SBATCH --ntasks 1
 #SBATCH --mem=300G                # Memory per node
-#SBATCH --qos=qn
+#SBATCH --qos=mpi
 
 #module --purge
 #module load cesga/2020
