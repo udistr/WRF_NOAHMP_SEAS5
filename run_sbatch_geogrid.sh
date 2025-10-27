@@ -15,7 +15,7 @@
 #module load cesga/2020
 #module load miniconda3/4.9.2
 
-cd /home/ARO.local/udist/arch/WRF_NOAMP/WPS_SEAS5_20141101
+cd WPSRUN
 
 . /data/bin/miniconda2/envs/tcsh-v6.22.03/env_tcsh.sh;
 . /data/bin/miniconda2/envs/cdo-v1.9.9/env_cdo.sh
